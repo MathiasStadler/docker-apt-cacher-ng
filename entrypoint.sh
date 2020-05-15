@@ -23,6 +23,11 @@ create_pid_dir
 create_cache_dir
 create_log_dir
 
+
+
+curl https://www.centos.org/download/full-mirrorlist.csv | sed 's/^.*"http:/http:/' | sed 's/".*$//' | grep ^http >/etc/apt-cacher-ng/centos_mirror
+
+
 # allow arguments to be passed to apt-cacher-ng
 if [[ ${1:0:1} = '-' ]]; then
   EXTRA_ARGS="$@"

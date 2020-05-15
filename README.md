@@ -1,3 +1,129 @@
+## 
+
+- update for used with yum 
+- settings from here: https://www.pitt-pladdy.com/blog/_20150720-132951_0100_Home_Lab_Project_apt-cacher-ng_with_CentOS/
+
+- add curl to Dockerfile
+- add miiror list to entrypoint: curl https://www.centos.org/download/full-mirrorlist.csv | sed 's/^.*"http:/http:/' | sed 's/".*$//' | grep ^http >/etc/apt-cacher-ng/centos_mirror
+
+
+- add centos based config to acng.conf
+
+```bash
+VfilePatternEx: ^/\?release=[0-9]+&arch=
+VfilePatternEx: ^(/\?release=[0-9]+&arch=.*|.*/RPM-GPG-KEY-examplevendor)$
+Remap-centos: file:centos_mirrors /centos
+PassThroughPattern: (mirrors\.fedoraproject\.org|some\.other\.repo|yet\.another\.repo):443
+```
+
+- add config file to compose-docker.yml
+
+```yaml
+- ./acng.conf:/etc/apt-cacher-ng/acng.conf
+```
+
+- change image name
+
+```yaml
+image: mathiasstadler/apt-cacher-ng-yum:latest
+```
+
+## build
+
+```bash
+docker build -t mathiasstadler/apt-cacher-ng-yum .
+```
+
+## run 
+
+```bash
+docker-compose -f docker-compose.yml up -d
+```
+
+## log
+
+docker exec -it <container_id>  tail -f /var/log/apt-cacher-ng/apt-cacher.log
+
+
+## setting on host
+
+- /etc/yum.conf
+
+```bash
+[main]
+gpgcheck=1
+installonly_limit=3
+clean_requirements_on_remove=True
+best=True
+proxy=http://192.168.178.29:3142
+tolerant=1
+errorlevel=1
+cachedir=/var/cache/yum/$basearch/$releasever
+keepcache=0
+debuglevel=2
+logfile=/var/log/yum.log
+exactarch=1
+obsoletes=1
+gpgcheck=1
+plugins=1
+installonly_limit=5
+bugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum
+distroverpkg=centos-release
+```
+
+- enable
+
+```bash
+yum clean expire-cache
+yum update
+```
+
+HAVE FUN
+
+## housekeeping
+
+```bash
+# found space
+cd && cd playground
+# clone 
+git clone https://github.com/MathiasStadler/vagrant-openstack-k8s-kvm-nested.git
+# start VSCODE inside browser 
+CID=$(docker run -it -d -p 0:8080 -v "${PWD}:/home/coder/project" -u "$(id -u):$(id -g)" codercom/code-server:3.3.0-rc.7  --cert)
+#found port of container
+docker inspect -f '{{ (index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort }}' ${CID}
+# found password
+docker logs ${CID} |grep Password
+# open with browser of your choice
+
+# add to the terminal with your data
+git config --global user.name "Mathias Stadler"
+git config --global user.EMAIL "email@mathias-stadler.de"
+# https://help.github.com/en/github/using-git/caching-your-github-password-in-git
+git config --global credential.helper 'cache --timeout=3600'
+
+# add extension
+sudo apt-get update && sudo apt-get install -y rubygems build-essential
+sudo gem install rufo
+code-server --install-extension siliconsenthil.rufo-vscode
+code-server --install-extension streetsidesoftware.code-spell-checker
+code-server --install-extension davidanson.vscode-markdownlint
+code-server --install-extension eamodio.gitlens
+code-server --install-extension gruntfuggly.todo-tree
+# create folder for todo-tree extension
+mkdir -p /home/coder/.local/share/code-server/User/globalStorage/gruntfuggly.todo-tree
+code-server --install-extension redhat.vscode-yaml
+sudo apt-get install -y shellcheck
+code-server --install-extension timonwong.shellcheck
+code-server --install-extension foxundermoon.shell-format
+code-server --install-extension  ms-azuretools.vscode-docker
+code-server --install-extension rebornix.ruby
+code-server --list-extensions
+```
+
+
+--  README.md from sameersbn/apt-cacher-ng ------------------------------------
+
+
 [![Circle CI](https://circleci.com/gh/sameersbn/docker-apt-cacher-ng.svg?style=shield)](https://circleci.com/gh/sameersbn/docker-apt-cacher-ng) [![Docker Repository on Quay.io](https://quay.io/repository/sameersbn/apt-cacher-ng/status "Docker Repository on Quay.io")](https://quay.io/repository/sameersbn/apt-cacher-ng)
 
 # sameersbn/apt-cacher-ng:3.1-3
