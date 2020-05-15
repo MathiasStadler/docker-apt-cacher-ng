@@ -88,7 +88,7 @@ cd && cd playground
 # clone 
 git clone https://github.com/MathiasStadler/vagrant-openstack-k8s-kvm-nested.git
 # start VSCODE inside browser 
-CID=$(docker run -it -d -p 0:8080 -v "${PWD}:/home/coder/project" -u "$(id -u):$(id -g)" codercom/code-server:3.3.0-rc.7  --cert)
+CID=$(docker run -it -d -p 0:8080 -v "${PWD}:/home/coder/project" -u "$(id -u):$(id -g)" codercom/code-server:3.2.0  --cert)
 #found port of container
 docker inspect -f '{{ (index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort }}' ${CID}
 # found password
